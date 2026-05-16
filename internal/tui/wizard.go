@@ -264,9 +264,9 @@ func (w *Wizard) selectedPlatforms() []installer.Platform {
 func (w *Wizard) startInstallation() tea.Cmd {
 	selected := w.selectedPlatforms()
 	steps := make([]string, 0, len(selected)+1)
-	steps = append(steps, "Copying skills")
+	steps = append(steps, "Copiando skills")
 	for _, p := range selected {
-		steps = append(steps, fmt.Sprintf("Installing %s", p.Name))
+		steps = append(steps, fmt.Sprintf("Instalando %s", p.Name))
 	}
 
 	w.installSteps = steps

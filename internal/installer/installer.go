@@ -47,6 +47,8 @@ func (inst *Installer) CopySkills() error {
 			skillsDir = filepath.Join(p.Dir, "skills", "ard")
 		case PlatformOpenCode:
 			skillsDir = filepath.Join(p.Dir, "skills", "ard")
+		case PlatformCodex:
+			skillsDir = filepath.Join(p.Dir, "skills", "ard")
 		}
 
 		if skillsDir == "" {
@@ -73,6 +75,8 @@ func (inst *Installer) InstallPlatform(p Platform) error {
 		return inst.installQwen(p)
 	case PlatformOpenCode:
 		return inst.installOpenCode(p)
+	case PlatformCodex:
+		return inst.installCodex(p)
 	default:
 		return fmt.Errorf("unknown platform: %s", p.ID)
 	}
@@ -173,6 +177,67 @@ func (inst *Installer) installOpenCode(p Platform) error {
 	}
 
 	return nil
+}
+
+// installCodex installs the ARD agent into OpenAI Codex (~/.codex).
+func (inst *Installer) installCodex(p Platform) error {
+	// Agent file
+	if err := inst.copyAsset(
+		"agents/agents-codex/ard.md",
+		filepath.Join(p.Dir, "agents", "ard.md"),
+	); err != nil {
+		return err
+	}
+
+	// Append instructions to ~/.codex/instructions.md
+	if err := inst.appendCodexInstructions(p.Dir); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// appendCodexInstructions appends the ARD instructions block to
+// ~/.codex/instructions.md. It is idempotent: if the marker "## ARD Agent AI"
+// is already present the file is left unchanged.
+func (inst *Installer) appendCodexInstructions(codexDir string) error {
+	instructionsPath := filepath.Join(codexDir, "instructions.md")
+
+	// Read existing content if the file exists
+	existing, err := os.ReadFile(instructionsPath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("reading instructions.md: %w", err)
+	}
+
+	// Idempotency check
+	if strings.Contains(string(existing), "## ARD Agent AI") {
+		return nil
+	}
+
+	skillsPath := filepath.Join(codexDir, "skills", "ard", "SKILL.md")
+	block := fmt.Sprintf(`
+
+---
+
+## ARD Agent AI
+
+You are an expert software architect. When the user mentions ARD, architecture decisions,
+design patterns, SOLID principles, or runs /ard-init or /ard-update, follow the ARD agent
+protocol from your skills file.
+
+Base path for ARD documents: %s
+
+Skills location: %s
+`, inst.basePath, skillsPath)
+
+	f, err := os.OpenFile(instructionsPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return fmt.Errorf("opening instructions.md: %w", err)
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(block)
+	return err
 }
 
 // copyAsset reads a file from the embedded FS, patches the placeholder, and

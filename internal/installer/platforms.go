@@ -12,6 +12,7 @@ const (
 	PlatformGitHubCopilot = "github-copilot"
 	PlatformQwenCode      = "qwen-code"
 	PlatformOpenCode      = "opencode"
+	PlatformCodex         = "codex"
 )
 
 // Platform describes an AI coding assistant that the installer supports.
@@ -31,6 +32,7 @@ func DetectPlatforms() []Platform {
 		detectGitHubCopilot(home),
 		detectQwenCode(home),
 		detectOpenCode(home),
+		detectCodex(home),
 	}
 
 	return platforms
@@ -87,6 +89,26 @@ func detectQwenCode(home string) Platform {
 		Dir:  "~/.qwen",
 	}
 	if _, err := os.Stat(dir); err == nil {
+		p.Detected = true
+		p.Dir = dir
+	}
+	return p
+}
+
+func detectCodex(home string) Platform {
+	dir := filepath.Join(home, ".codex")
+	p := Platform{
+		ID:   PlatformCodex,
+		Name: "OpenAI Codex",
+		Dir:  "~/.codex",
+	}
+	if _, err := os.Stat(dir); err == nil {
+		p.Detected = true
+		p.Dir = dir
+		return p
+	}
+	// Fallback: check if codex binary is available
+	if _, err := exec.LookPath("codex"); err == nil {
 		p.Detected = true
 		p.Dir = dir
 	}

@@ -24,7 +24,7 @@ func Run(args []string) error {
 		printHelp()
 		return nil
 	default:
-		fmt.Printf("Unknown command: %s\n\n", args[0])
+		fmt.Printf("Comando desconocido: %s\n\n", args[0])
 		printHelp()
 		return nil
 	}
@@ -40,20 +40,20 @@ func runWizard() error {
 }
 
 func printHelp() {
-	fmt.Printf(`ard-agent-ai v%s — Architecture Record Document agent installer
+	fmt.Printf(`ard-agent-ai v%s — Instalador del agente Architecture Record Document
 
-USAGE:
-  ard-agent-ai              Launch the installation wizard
-  ard-agent-ai install      Launch the installation wizard
-  ard-agent-ai --version    Print version
-  ard-agent-ai --help       Print this help
+USO:
+  ard-agent-ai              Iniciar el asistente de instalación
+  ard-agent-ai install      Iniciar el asistente de instalación
+  ard-agent-ai --version    Mostrar versión
+  ard-agent-ai --help       Mostrar esta ayuda
 
-DESCRIPTION:
-  Installs the ARD Agent into your AI coding assistants
-  (Claude Code, GitHub Copilot, Qwen Code, opencode).
+DESCRIPCIÓN:
+  Instala el Agente ARD en tus asistentes de código con IA
+  (Claude Code, GitHub Copilot, Qwen Code, opencode, OpenAI Codex).
 
-  The agent helps you define and evolve software architecture
-  decisions through Socratic dialogue and generates Architecture
+  El agente te ayuda a definir y evolucionar decisiones de arquitectura
+  de software mediante diálogo socrático y genera Architecture
   Record Documents (ARDs).
 `, Version)
 }

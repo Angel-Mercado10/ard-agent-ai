@@ -13,17 +13,31 @@ const pointer = "▶"
 const boxChecked = "[x]"
 const boxEmpty = "[ ]"
 
+const dogAscii = `
+    /\_____/\
+   /  o   o  \   ╔══════════╗
+  ( ==  ^  == )  ║  ██████  ║
+   )         (   ║  ██████  ║
+  (           )  ╚══════════╝
+ ( (  )   (  ) )    hard hat
+(__(__)___(__)__)
+  /|         |\
+ / |  📐 📏  | \
+`
+
 func viewWelcome(w *Wizard) string {
+	dog := MutedStyle.Render(dogAscii)
 	title := TitleStyle.Render(fmt.Sprintf("🏛  ARD Agent AI   v%s", w.version))
 
 	content := strings.Join([]string{
+		dog,
 		title,
 		"",
-		SubtitleStyle.Render("Architecture Record Document installer"),
-		MutedStyle.Render("Define and evolve software architecture"),
-		MutedStyle.Render("decisions with AI assistance."),
+		SubtitleStyle.Render("Instalador de Architecture Record Documents"),
+		MutedStyle.Render("Definí y evolucioná decisiones de arquitectura"),
+		MutedStyle.Render("de software con asistencia de IA."),
 		"",
-		KeyStyle.Render("Press ENTER to continue · ESC to quit"),
+		KeyStyle.Render("ENTER para continuar · ESC para salir"),
 	}, "\n")
 
 	return "\n" + BoxPrimaryStyle.Render(content) + "\n"
@@ -34,9 +48,9 @@ func viewDetecting(w *Wizard) string {
 
 	b.WriteString("\n")
 	if w.detecting {
-		b.WriteString(fmt.Sprintf("  %s  %s\n\n", w.spinner.View(), MutedStyle.Render("Detecting platforms...")))
+		b.WriteString(fmt.Sprintf("  %s  %s\n\n", w.spinner.View(), MutedStyle.Render("Detectando plataformas...")))
 	} else {
-		b.WriteString(fmt.Sprintf("  %s\n\n", MutedStyle.Render("Detecting platforms...")))
+		b.WriteString(fmt.Sprintf("  %s\n\n", MutedStyle.Render("Detectando plataformas...")))
 
 		for _, p := range w.platforms {
 			if p.Detected {
@@ -49,13 +63,13 @@ func viewDetecting(w *Wizard) string {
 				b.WriteString(fmt.Sprintf("  %s  %-20s %s\n",
 					ErrorStyle.Render(crossMark),
 					MutedStyle.Render(p.Name),
-					MutedStyle.Render("not found"),
+					MutedStyle.Render("no encontrado"),
 				))
 			}
 		}
 
 		b.WriteString("\n")
-		b.WriteString(KeyStyle.Render("  Press ENTER to continue"))
+		b.WriteString(KeyStyle.Render("  ENTER para continuar"))
 	}
 
 	return b.String()
@@ -66,7 +80,7 @@ func viewSelect(w *Wizard) string {
 
 	var b strings.Builder
 	b.WriteString("\n")
-	b.WriteString(fmt.Sprintf("  %s\n\n", SectionLabelStyle.Render("Select platforms to install:")))
+	b.WriteString(fmt.Sprintf("  %s\n\n", SectionLabelStyle.Render("Seleccioná las plataformas a instalar:")))
 
 	for i, p := range detected {
 		cursor := "  "
@@ -83,7 +97,7 @@ func viewSelect(w *Wizard) string {
 	}
 
 	b.WriteString("\n")
-	b.WriteString(KeyStyle.Render("  SPACE to toggle · ENTER to confirm · ESC to go back"))
+	b.WriteString(KeyStyle.Render("  SPACE para marcar · ENTER para confirmar · ESC para volver"))
 	b.WriteString("\n")
 
 	return b.String()
@@ -92,12 +106,12 @@ func viewSelect(w *Wizard) string {
 func viewBasePath(w *Wizard) string {
 	var b strings.Builder
 	b.WriteString("\n")
-	b.WriteString(fmt.Sprintf("  %s\n\n", SectionLabelStyle.Render("Where should ARD documents be saved?")))
+	b.WriteString(fmt.Sprintf("  %s\n\n", SectionLabelStyle.Render("¿Dónde querés guardar tus documentos ARD?")))
 	b.WriteString(fmt.Sprintf("  ❯ %s\n\n", w.textInput.View()))
-	b.WriteString(MutedStyle.Render("  This is the root folder where all ARD.md files\n"))
-	b.WriteString(MutedStyle.Render("  will be created when you run /ard-init.\n"))
+	b.WriteString(MutedStyle.Render("  Esta es la carpeta raíz donde se crearán todos\n"))
+	b.WriteString(MutedStyle.Render("  los archivos ARD.md al ejecutar /ard-init.\n"))
 	b.WriteString("\n")
-	b.WriteString(KeyStyle.Render("  ENTER to confirm · ESC to go back"))
+	b.WriteString(KeyStyle.Render("  ENTER para confirmar · ESC para volver"))
 	b.WriteString("\n")
 
 	return b.String()
@@ -115,23 +129,23 @@ func viewConfirm(w *Wizard) string {
 	}
 
 	content := strings.Join([]string{
-		SectionLabelStyle.Render("Ready to install"),
+		SectionLabelStyle.Render("Listo para instalar"),
 		"",
-		"  Platforms:",
+		"  Plataformas:",
 		platformLines.String(),
-		"  ARD documents path:",
+		"  Ruta de documentos ARD:",
 		fmt.Sprintf("    %s", SelectedStyle.Render(w.basePath)),
 		"",
 	}, "\n")
 
 	return "\n" + BoxStyle.Render(content) + "\n\n" +
-		KeyStyle.Render("  ENTER to install · ESC to go back") + "\n"
+		KeyStyle.Render("  ENTER para instalar · ESC para volver") + "\n"
 }
 
 func viewInstalling(w *Wizard) string {
 	var b strings.Builder
 	b.WriteString("\n")
-	b.WriteString(fmt.Sprintf("  %s\n\n", SectionLabelStyle.Render("Installing...")))
+	b.WriteString(fmt.Sprintf("  %s\n\n", SectionLabelStyle.Render("Instalando...")))
 
 	for i, step := range w.installSteps {
 		if w.installDone[i] {
@@ -166,27 +180,32 @@ func viewDone(w *Wizard) string {
 	var commandsSection strings.Builder
 	for _, p := range selected {
 		if p.ID == installer.PlatformClaudeCode {
-			commandsSection.WriteString(fmt.Sprintf("\n  %s — available commands:\n", p.Name))
+			commandsSection.WriteString(fmt.Sprintf("\n  %s — comandos disponibles:\n", p.Name))
 			commandsSection.WriteString(DividerStyle.Render("  ─────────────────────────────────") + "\n")
 			commandsSection.WriteString(fmt.Sprintf("  %-30s %s\n",
 				SelectedStyle.Render("/ard-init <project>"),
-				MutedStyle.Render("Define architecture"),
+				MutedStyle.Render("Definir arquitectura"),
 			))
 			commandsSection.WriteString(fmt.Sprintf("  %-30s %s\n",
 				SelectedStyle.Render("/ard-update <project>"),
-				MutedStyle.Render("Evolve architecture"),
+				MutedStyle.Render("Evolucionar arquitectura"),
 			))
+		}
+		if p.ID == installer.PlatformCodex {
+			commandsSection.WriteString(fmt.Sprintf("\n  %s — instrucciones instaladas:\n", p.Name))
+			commandsSection.WriteString(DividerStyle.Render("  ─────────────────────────────────────────") + "\n")
+			commandsSection.WriteString(MutedStyle.Render("  Abrí una sesión de Codex y usá /ard-init\n"))
 		}
 	}
 
 	content := strings.Join([]string{
 		"",
-		fmt.Sprintf("  %s", SuccessStyle.Render("✔  Installation complete!")),
+		fmt.Sprintf("  %s", SuccessStyle.Render("✔  ¡Instalación completa!")),
 		commandsSection.String(),
-		MutedStyle.Render("  Restart your editor for changes to take effect."),
+		MutedStyle.Render("  Reiniciá tu editor para que los cambios tomen efecto."),
 		"",
 	}, "\n")
 
 	return "\n" + BoxPrimaryStyle.Render(content) + "\n\n" +
-		KeyStyle.Render("  Press ENTER or ESC to exit") + "\n"
+		KeyStyle.Render("  ENTER o ESC para salir") + "\n"
 }
