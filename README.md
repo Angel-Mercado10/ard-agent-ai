@@ -1,5 +1,9 @@
 # ARD-ARCHITECT
 
+[![Release](https://img.shields.io/github/v/release/Angel-Mercado10/ard-agent-ai?style=flat-square)](https://github.com/Angel-Mercado10/ard-agent-ai/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![Go](https://img.shields.io/badge/go-1.22+-00ADD8.svg?style=flat-square&logo=go)](https://go.dev/)
+
 ```
     /\_____/\
    /  o   o  \
@@ -48,16 +52,26 @@ No es documentación descriptiva. Es un registro de **por qué** se tomó cada d
 
 ### Windows — Scoop (recomendado)
 
-> ⚠️ El bucket de Scoop estará disponible en breve. Por ahora usá el binario directo.
-
 ```sh
-scoop bucket add gentleman https://github.com/Gentleman-Programming/scoop-bucket
-scoop install ard-agent-ai
+scoop bucket add angel https://github.com/Angel-Mercado10/scoop-bucket
+scoop install angel/ard-agent-ai
 ```
 
-### Descarga directa
+Actualizar a una versión nueva:
 
-Descargá el binario para tu sistema desde [Releases](https://github.com/Angel-Mercado10/ard-agent-ai/releases):
+```sh
+scoop update ard-agent-ai
+```
+
+### Go install (cualquier sistema con Go 1.22+)
+
+```sh
+go install github.com/Angel-Mercado10/ard-agent-ai/cmd/ard-agent-ai@latest
+```
+
+### Descarga directa (macOS / Linux / Windows)
+
+Descarga el binario desde [Releases](https://github.com/Angel-Mercado10/ard-agent-ai/releases/latest):
 
 ```sh
 # macOS / Linux
@@ -81,7 +95,7 @@ go build -o ard-agent-ai ./cmd/ard-agent-ai
 
 ## Uso
 
-El wizard detecta automáticamente qué editores de IA tenés instalados y copia los archivos del agente en el lugar correcto.
+El wizard detecta automáticamente qué editores de IA tienes instalados y copia los archivos del agente en el lugar correcto.
 
 ```sh
 ard-agent-ai               # Abre el wizard interactivo (recomendado)
@@ -123,6 +137,8 @@ export ARD_AGENT_AI_BASE_PATH="$HOME/proyectos/ard"
 
 ## Comandos disponibles después de instalar
 
+Una vez que el wizard termina, reinicia tu editor y vas a tener disponibles:
+
 ```
 /ard-init <proyecto>     Elicitación socrática completa → genera <proyecto>_ard.md
 /ard-update <proyecto>   Evoluciona un ARD existente → registra cambios en Decision Log
@@ -145,6 +161,17 @@ export ARD_AGENT_AI_BASE_PATH="$HOME/proyectos/ard"
 
 ---
 
+## Filosofía
+
+El agente está construido sobre estos principios:
+
+- **Documentar el WHY, no el WHAT.** El código ya muestra lo que hace; el ARD captura por qué se decidió así.
+- **Socrático, no asistente pasivo.** El agente cuestiona supuestos, expone tradeoffs y no permite decisiones sin justificación.
+- **Documento vivo.** El ARD evoluciona con el proyecto. Cada cambio queda registrado con fecha y razón.
+- **Conflictos arquitectónicos conocidos.** El agente detecta combinaciones problemáticas (Event Sourcing sin CQRS, Microservices con equipo de menos de 3, Hexagonal con ORM en el dominio…) y las desafía antes de aceptarlas.
+
+---
+
 ## Estructura del proyecto
 
 ```
@@ -159,13 +186,35 @@ agents/                   Copia de referencia de los archivos del agente
 
 ---
 
+## Stack técnico
+
+| Componente | Tecnología |
+|------------|-----------|
+| CLI | Go 1.22+ |
+| TUI | [Bubble Tea](https://github.com/charmbracelet/bubbletea) + [Lipgloss](https://github.com/charmbracelet/lipgloss) |
+| Distribución | [GoReleaser](https://goreleaser.com/) + [Scoop](https://scoop.sh/) |
+| CI/CD | GitHub Actions |
+
+---
+
 ## Contribuir
 
 1. Fork + clone
 2. `go mod tidy && go test ./...`
-3. Abrí un PR describiendo el cambio
+3. Abre un PR describiendo el cambio
 
 Cualquier mejora al protocolo socrático del agente, nuevas plataformas o mejoras al TUI son bienvenidas.
+
+### Releasing
+
+Crear un tag con prefijo `v` dispara GoReleaser automáticamente:
+
+```sh
+git tag v1.0.3
+git push origin v1.0.3
+```
+
+Después, actualizar el manifest en [scoop-bucket](https://github.com/Angel-Mercado10/scoop-bucket) con los nuevos hashes del release.
 
 ---
 
