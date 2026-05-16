@@ -15,26 +15,25 @@ const boxEmpty = "[ ]"
 
 const dogAscii = `
     /\_____/\
-   /  o   o  \   ╔══════════╗
-  ( ==  ^  == )  ║  ██████  ║
-   )         (   ║  ██████  ║
-  (           )  ╚══════════╝
- ( (  )   (  ) )    hard hat
+   /  o   o  \
+  ( ==  ^  == )
+   )         (
+  (           )
+ ( (  )   (  ) )
 (__(__)___(__)__)
-  /|         |\
- / |  📐 📏  | \
+  /|  📐 📏  |\
 `
 
 func viewWelcome(w *Wizard) string {
 	dog := MutedStyle.Render(dogAscii)
-	title := TitleStyle.Render(fmt.Sprintf("🏛  ARD Agent AI   v%s", w.version))
+	title := TitleStyle.Render(fmt.Sprintf("🏛  ARD-ARCHITECT   v%s", w.version))
 
 	content := strings.Join([]string{
 		dog,
 		title,
 		"",
 		SubtitleStyle.Render("Instalador de Architecture Record Documents"),
-		MutedStyle.Render("Definí y evolucioná decisiones de arquitectura"),
+		MutedStyle.Render("Define y evoluciona decisiones de arquitectura"),
 		MutedStyle.Render("de software con asistencia de IA."),
 		"",
 		KeyStyle.Render("ENTER para continuar · ESC para salir"),
@@ -80,7 +79,7 @@ func viewSelect(w *Wizard) string {
 
 	var b strings.Builder
 	b.WriteString("\n")
-	b.WriteString(fmt.Sprintf("  %s\n\n", SectionLabelStyle.Render("Seleccioná las plataformas a instalar:")))
+	b.WriteString(fmt.Sprintf("  %s\n\n", SectionLabelStyle.Render("Selecciona las plataformas a instalar:")))
 
 	for i, p := range detected {
 		cursor := "  "
@@ -106,10 +105,10 @@ func viewSelect(w *Wizard) string {
 func viewBasePath(w *Wizard) string {
 	var b strings.Builder
 	b.WriteString("\n")
-	b.WriteString(fmt.Sprintf("  %s\n\n", SectionLabelStyle.Render("¿Dónde querés guardar tus documentos ARD?")))
+	b.WriteString(fmt.Sprintf("  %s\n\n", SectionLabelStyle.Render("¿Dónde quieres guardar tus documentos ARD?")))
 	b.WriteString(fmt.Sprintf("  ❯ %s\n\n", w.textInput.View()))
 	b.WriteString(MutedStyle.Render("  Esta es la carpeta raíz donde se crearán todos\n"))
-	b.WriteString(MutedStyle.Render("  los archivos ARD.md al ejecutar /ard-init.\n"))
+	b.WriteString(MutedStyle.Render("  los archivos ARD.md al usar /ard-init.\n"))
 	b.WriteString("\n")
 	b.WriteString(KeyStyle.Render("  ENTER para confirmar · ESC para volver"))
 	b.WriteString("\n")
@@ -194,7 +193,7 @@ func viewDone(w *Wizard) string {
 		if p.ID == installer.PlatformCodex {
 			commandsSection.WriteString(fmt.Sprintf("\n  %s — instrucciones instaladas:\n", p.Name))
 			commandsSection.WriteString(DividerStyle.Render("  ─────────────────────────────────────────") + "\n")
-			commandsSection.WriteString(MutedStyle.Render("  Abrí una sesión de Codex y usá /ard-init\n"))
+			commandsSection.WriteString(MutedStyle.Render("  Abre una sesión de Codex y usa /ard-init\n"))
 		}
 	}
 
@@ -202,7 +201,7 @@ func viewDone(w *Wizard) string {
 		"",
 		fmt.Sprintf("  %s", SuccessStyle.Render("✔  ¡Instalación completa!")),
 		commandsSection.String(),
-		MutedStyle.Render("  Reiniciá tu editor para que los cambios tomen efecto."),
+		MutedStyle.Render("  Reinicia tu editor para que los cambios tomen efecto."),
 		"",
 	}, "\n")
 
