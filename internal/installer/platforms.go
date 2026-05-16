@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 )
 
 // Platform IDs.
@@ -27,15 +28,67 @@ type Platform struct {
 func DetectPlatforms() []Platform {
 	home, _ := os.UserHomeDir()
 
-	platforms := []Platform{
-		detectClaudeCode(home),
-		detectGitHubCopilot(home),
-		detectQwenCode(home),
-		detectOpenCode(home),
-		detectCodex(home),
+	detectors := []func(string) Platform{
+		detectClaudeCode,
+		detectGitHubCopilot,
+		detectQwenCode,
+		detectOpenCode,
+		detectCodex,
 	}
 
+	platforms := make([]Platform, len(detectors))
+	var wg sync.WaitGroup
+	for i, detect := range detectors {
+		wg.Add(1)
+		go func(i int, detect func(string) Platform) {
+			defer wg.Done()
+			platforms[i] = detect(home)
+		}(i, detect)
+	}
+	wg.Wait()
+
 	return platforms
+}
+
+// PlatformByID returns a platform with its conventional config directory even
+// when it has not been detected yet. This is useful for explicit CLI installs.
+func PlatformByID(id string) (Platform, bool) {
+	home, _ := os.UserHomeDir()
+	for _, p := range DetectPlatforms() {
+		if p.ID == id {
+			return p, true
+		}
+	}
+
+	defaults := map[string]Platform{
+		PlatformClaudeCode: {
+			ID:   PlatformClaudeCode,
+			Name: "Claude Code",
+			Dir:  filepath.Join(home, ".claude"),
+		},
+		PlatformGitHubCopilot: {
+			ID:   PlatformGitHubCopilot,
+			Name: "GitHub Copilot",
+			Dir:  filepath.Join(home, ".copilot"),
+		},
+		PlatformQwenCode: {
+			ID:   PlatformQwenCode,
+			Name: "Qwen Code",
+			Dir:  filepath.Join(home, ".qwen"),
+		},
+		PlatformOpenCode: {
+			ID:   PlatformOpenCode,
+			Name: "opencode",
+			Dir:  filepath.Join(home, ".config", "opencode"),
+		},
+		PlatformCodex: {
+			ID:   PlatformCodex,
+			Name: "OpenAI Codex",
+			Dir:  filepath.Join(home, ".codex"),
+		},
+	}
+	p, ok := defaults[id]
+	return p, ok
 }
 
 func detectClaudeCode(home string) Platform {
@@ -43,7 +96,7 @@ func detectClaudeCode(home string) Platform {
 	p := Platform{
 		ID:   PlatformClaudeCode,
 		Name: "Claude Code",
-		Dir:  "~/.claude",
+		Dir:  dir,
 	}
 	// Detected if ~/.claude exists (claude binary is optional)
 	if _, err := os.Stat(dir); err == nil {
@@ -64,7 +117,7 @@ func detectGitHubCopilot(home string) Platform {
 	p := Platform{
 		ID:   PlatformGitHubCopilot,
 		Name: "GitHub Copilot",
-		Dir:  "~/.copilot",
+		Dir:  dir,
 	}
 	if _, err := os.Stat(dir); err == nil {
 		p.Detected = true
@@ -86,7 +139,7 @@ func detectQwenCode(home string) Platform {
 	p := Platform{
 		ID:   PlatformQwenCode,
 		Name: "Qwen Code",
-		Dir:  "~/.qwen",
+		Dir:  dir,
 	}
 	if _, err := os.Stat(dir); err == nil {
 		p.Detected = true
@@ -100,7 +153,7 @@ func detectCodex(home string) Platform {
 	p := Platform{
 		ID:   PlatformCodex,
 		Name: "OpenAI Codex",
-		Dir:  "~/.codex",
+		Dir:  dir,
 	}
 	if _, err := os.Stat(dir); err == nil {
 		p.Detected = true
@@ -121,7 +174,7 @@ func detectOpenCode(home string) Platform {
 	p := Platform{
 		ID:   PlatformOpenCode,
 		Name: "opencode",
-		Dir:  "~/.config/opencode",
+		Dir:  dir,
 	}
 	if _, err := os.Stat(configFile); err == nil {
 		p.Detected = true

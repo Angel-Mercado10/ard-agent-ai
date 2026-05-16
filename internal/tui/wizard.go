@@ -64,8 +64,10 @@ func NewWizard(version string) *Wizard {
 	s.Spinner = spinner.Dot
 	s.Style = SelectedStyle
 
+	defaultBasePath := installer.DefaultBasePath()
+
 	ti := textinput.New()
-	ti.Placeholder = `C:\Projects\`
+	ti.Placeholder = defaultBasePath
 	ti.CharLimit = 256
 	ti.Width = 40
 
@@ -75,7 +77,7 @@ func NewWizard(version string) *Wizard {
 		spinner:   s,
 		textInput: ti,
 		selected:  make(map[int]bool),
-		basePath:  `C:\Projects\`,
+		basePath:  defaultBasePath,
 	}
 }
 
@@ -192,10 +194,11 @@ func (w *Wizard) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			w.step = stepSelect
 		case "enter":
 			val := strings.TrimSpace(w.textInput.Value())
-			if val == "" {
-				val = `C:\Projects\`
+			resolved, err := installer.ResolveBasePath(val)
+			if err != nil {
+				resolved = installer.DefaultBasePath()
 			}
-			w.basePath = val
+			w.basePath = resolved
 			w.textInput.Blur()
 			w.step = stepConfirm
 		}

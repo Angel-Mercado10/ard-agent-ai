@@ -11,6 +11,9 @@ import (
 )
 
 const placeholder = `C:\Projects\`
+const codexInstructionsTitle = "## ARD Agent AI"
+const codexBlockStart = "<!-- ard-agent-ai:start -->"
+const codexBlockEnd = "<!-- ard-agent-ai:end -->"
 
 // Installer handles copying agent files to platform directories.
 type Installer struct {
@@ -21,8 +24,13 @@ type Installer struct {
 // New creates an Installer configured with the user's chosen base path and
 // the list of platforms to install into.
 func New(basePath string, platforms []Platform) *Installer {
+	resolvedBasePath, err := ResolveBasePath(basePath)
+	if err != nil {
+		resolvedBasePath = basePath
+	}
+
 	return &Installer{
-		basePath:  basePath,
+		basePath:  resolvedBasePath,
 		platforms: platforms,
 	}
 }
@@ -197,9 +205,10 @@ func (inst *Installer) installCodex(p Platform) error {
 	return nil
 }
 
-// appendCodexInstructions appends the ARD instructions block to
-// ~/.codex/instructions.md. It is idempotent: if the marker "## ARD Agent AI"
-// is already present the file is left unchanged.
+// appendCodexInstructions writes the ARD instructions block to
+// ~/.codex/instructions.md. It is idempotent but updateable: if a previous
+// managed block exists, it is replaced so changing the base path actually
+// updates Codex instead of keeping the old route forever.
 func (inst *Installer) appendCodexInstructions(codexDir string) error {
 	instructionsPath := filepath.Join(codexDir, "instructions.md")
 
@@ -209,16 +218,18 @@ func (inst *Installer) appendCodexInstructions(codexDir string) error {
 		return fmt.Errorf("reading instructions.md: %w", err)
 	}
 
-	// Idempotency check
-	if strings.Contains(string(existing), "## ARD Agent AI") {
-		return nil
-	}
-
 	skillsPath := filepath.Join(codexDir, "skills", "ard", "SKILL.md")
-	block := fmt.Sprintf(`
+	block := inst.codexInstructionsBlock(skillsPath)
+	updated := upsertCodexInstructionsBlock(string(existing), block)
 
+	return writeFile(instructionsPath, []byte(updated))
+}
+
+func (inst *Installer) codexInstructionsBlock(skillsPath string) string {
+	return fmt.Sprintf(`
 ---
 
+%s
 ## ARD Agent AI
 
 You are an expert software architect. When the user mentions ARD, architecture decisions,
@@ -228,16 +239,33 @@ protocol from your skills file.
 Base path for ARD documents: %s
 
 Skills location: %s
-`, inst.basePath, skillsPath)
+%s
+`, codexBlockStart, inst.basePath, skillsPath, codexBlockEnd)
+}
 
-	f, err := os.OpenFile(instructionsPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
-	if err != nil {
-		return fmt.Errorf("opening instructions.md: %w", err)
+func upsertCodexInstructionsBlock(existing, block string) string {
+	if existing == "" {
+		return strings.TrimLeft(block, "\r\n")
 	}
-	defer f.Close()
 
-	_, err = f.WriteString(block)
-	return err
+	start := strings.Index(existing, codexBlockStart)
+	end := strings.Index(existing, codexBlockEnd)
+	if start >= 0 && end >= start {
+		end += len(codexBlockEnd)
+		return strings.TrimRight(existing[:start], "\r\n") + "\n\n" + strings.TrimSpace(block) + strings.TrimLeft(existing[end:], "\r\n")
+	}
+
+	legacyStart := strings.Index(existing, codexInstructionsTitle)
+	if legacyStart >= 0 {
+		nextSection := strings.Index(existing[legacyStart+len(codexInstructionsTitle):], "\n## ")
+		if nextSection >= 0 {
+			legacyEnd := legacyStart + len(codexInstructionsTitle) + nextSection
+			return strings.TrimRight(existing[:legacyStart], "\r\n") + strings.TrimSpace(block) + "\n" + strings.TrimLeft(existing[legacyEnd:], "\r\n")
+		}
+		return strings.TrimRight(existing[:legacyStart], "\r\n") + strings.TrimSpace(block) + "\n"
+	}
+
+	return strings.TrimRight(existing, "\r\n") + "\n\n" + strings.TrimSpace(block) + "\n"
 }
 
 // copyAsset reads a file from the embedded FS, patches the placeholder, and
