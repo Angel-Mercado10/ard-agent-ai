@@ -1,4 +1,4 @@
-module github.com/gentleman-programming/ard-agent-ai
+module github.com/Angel-Mercado10/ard-agent-ai
 
 go 1.24.2
 

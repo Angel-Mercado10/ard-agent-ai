@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/gentleman-programming/ard-agent-ai/internal/installer"
-	"github.com/gentleman-programming/ard-agent-ai/internal/tui"
+	"github.com/Angel-Mercado10/ard-agent-ai/internal/installer"
+	"github.com/Angel-Mercado10/ard-agent-ai/internal/tui"
 )
 
 // Version is set by the build system via ldflags.

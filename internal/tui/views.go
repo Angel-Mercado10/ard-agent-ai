@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gentleman-programming/ard-agent-ai/internal/installer"
+	"github.com/Angel-Mercado10/ard-agent-ai/internal/installer"
 )
 
 const checkMark = "✔"

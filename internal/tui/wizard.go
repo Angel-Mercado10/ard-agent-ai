@@ -7,7 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/gentleman-programming/ard-agent-ai/internal/installer"
+	"github.com/Angel-Mercado10/ard-agent-ai/internal/installer"
 )
 
 // Step constants for the wizard.

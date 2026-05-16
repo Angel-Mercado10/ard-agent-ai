@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gentleman-programming/ard-agent-ai/internal/app"
+	"github.com/Angel-Mercado10/ard-agent-ai/internal/app"
 )
 
 var version = "dev"

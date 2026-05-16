@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gentleman-programming/ard-agent-ai/internal/assets"
+	"github.com/Angel-Mercado10/ard-agent-ai/internal/assets"
 )
 
 const placeholder = `C:\Projects\`

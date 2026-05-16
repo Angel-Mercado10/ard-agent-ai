@@ -3,7 +3,7 @@ name: ard
 description: "Trigger: ARD, architecture decisions, design patterns, SOLID, DRY, KISS, YAGNI, Outbox, CQRS, agile, sprint planning, tech stack decisions. Generate or update an Architecture Record Document."
 license: MIT
 metadata:
-  author: gentleman-programming
+  author: Angel-Mercado10
   version: "1.0"
 ---
 
