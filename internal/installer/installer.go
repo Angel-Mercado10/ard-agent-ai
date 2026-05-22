@@ -3,6 +3,7 @@ package installer
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -35,15 +36,9 @@ func New(basePath string, platforms []Platform) *Installer {
 	}
 }
 
-// CopySkills writes the shared skills to every selected platform.
+// CopySkills writes the shared skill directory to every selected platform.
 // This is always step 0 during installation.
 func (inst *Installer) CopySkills() error {
-	skillContent, err := assets.AgentFS.ReadFile("agents/skills/ard/SKILL.md")
-	if err != nil {
-		return fmt.Errorf("reading SKILL.md: %w", err)
-	}
-	skillContent = inst.patchContent(skillContent)
-
 	for _, p := range inst.platforms {
 		var skillsDir string
 		switch p.ID {
@@ -62,14 +57,39 @@ func (inst *Installer) CopySkills() error {
 		if skillsDir == "" {
 			continue
 		}
-		if err := os.MkdirAll(skillsDir, 0o755); err != nil {
-			return fmt.Errorf("creating skills dir for %s: %w", p.Name, err)
-		}
-		if err := writeFile(filepath.Join(skillsDir, "SKILL.md"), skillContent); err != nil {
-			return fmt.Errorf("writing SKILL.md for %s: %w", p.Name, err)
+		if err := inst.copySkillDir(skillsDir); err != nil {
+			return fmt.Errorf("copying skill dir for %s: %w", p.Name, err)
 		}
 	}
 	return nil
+}
+
+func (inst *Installer) copySkillDir(destRoot string) error {
+	const sourceRoot = "agents/skills/ard"
+
+	return fs.WalkDir(assets.AgentFS, sourceRoot, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath := strings.TrimPrefix(path, sourceRoot)
+		relPath = strings.TrimPrefix(relPath, "/")
+		destPath := destRoot
+		if relPath != "" {
+			destPath = filepath.Join(destRoot, filepath.FromSlash(relPath))
+		}
+
+		if d.IsDir() {
+			return os.MkdirAll(destPath, 0o755)
+		}
+
+		data, err := assets.AgentFS.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", path, err)
+		}
+
+		return writeFile(destPath, inst.patchContent(data))
+	})
 }
 
 // InstallPlatform installs all agent files for a single platform.
@@ -232,13 +252,14 @@ func (inst *Installer) codexInstructionsBlock(skillsPath string) string {
 %s
 ## ARD Agent AI
 
-You are an expert software architect. When the user mentions ARD, architecture decisions,
-design patterns, SOLID principles, or runs /ard-init or /ard-update, follow the ARD agent
-protocol from your skills file.
+You are the ARD runtime adapter. When the user asks to create, update, review, or record
+architecture decisions in an Architecture Record Document, read the canonical `+"`"+`ard`+"`"+` skill
+and follow it as the source of truth.
 
-Base path for ARD documents: %s
+Configured ARD base path: %s
 
 Skills location: %s
+Use supporting files from the same skill directory when the skill refers to `+"`"+`assets/`+"`"+` or `+"`"+`references/`+"`"+`.
 %s
 `, codexBlockStart, inst.basePath, skillsPath, codexBlockEnd)
 }
@@ -324,7 +345,7 @@ func generateSkillRegistry(basePath, skillsDir string) string {
 
 | Trigger | Skill | Path |
 |---------|-------|------|
-| ARD, architecture decisions, design patterns, SOLID, CQRS, /ard-init, /ard-update | ard | %s/SKILL.md |
+| ARD, Architecture Record Document, architecture decision register, /ard-init, /ard-update | ard | %s/SKILL.md |
 
 ## Compact Rules
 
@@ -332,10 +353,10 @@ func generateSkillRegistry(basePath, skillsDir string) string {
 - Base path for all ARDs: `+"`"+`%s`+"`"+`
 - Commands: `+"`"+`ard-init <project>`+"`"+` (full socratic init) · `+"`"+`ard-update <project>`+"`"+` (incremental evolution)
 - Document WHY for every decision — never just WHAT
-- Section 19 (Sprint Map) generated LAST — synthesizes all prior decisions
-- Every ard-update change logged in Decision Log (section 20) with date and reason
-- Challenging questions ONLY when: contradiction detected, undeclared assumption, insufficient info, or conflicting patterns
-- Known conflicts: Event Sourcing without CQRS · Microservices with <3 devs · Outbox without message broker · Hexagonal with ORM in domain layer
+- Section 19 (Sprint Map) is generated LAST after sections 1–18
+- Log every `+"`"+`ard-update`+"`"+` change in Decision Log (section 20) with date and reason
+- Use explicit challenge blocks only for contradictions, undeclared assumptions, missing information, or known pattern conflicts
+- Supporting templates and extended guidance live next to the installed skill in `+"`"+`assets/`+"`"+` and `+"`"+`references/`+"`"+`
 `, basePath, skillsDir, basePath)
 }
 
