@@ -2,8 +2,7 @@
 description: Update or evolve an existing Architecture Record Document
 ---
 
-Update the ARD for the project: $ARGUMENTS
+Start the canonical `ard` workflow in update mode for: $ARGUMENTS
 
-Base path: C:\Projects\
-
-Follow the ard-update protocol from your skill/prompt.
+Use the installed `ard` skill as the source of truth.
+If the ARD does not exist yet, stop and direct the user to `ard-init`.
