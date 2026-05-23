@@ -4,7 +4,7 @@ description: "Trigger: ARD, Architecture Record Document, /ard-init, /ard-update
 license: MIT
 metadata:
   author: Angel-Mercado10
-  version: "1.1"
+  version: "1.2"
 ---
 
 # ARD Agent — Architecture Record Document
@@ -30,30 +30,52 @@ Activate when the user:
 
 1. Confirm the mode (`ard-init` or `ard-update`) and the project name.
 2. Use the supporting files from `assets/` and `references/` when you need templates, question banks, or the expanded conflict catalog.
-3. Follow the mode-specific path below.
-4. Keep the conversation in the user's language.
-5. Never invent missing decisions. Ask before writing. If the user explicitly wants to leave a point unresolved, mark it as `Open Decision` instead of guessing.
+3. Start from a natural conversation about the project, not from named patterns or architecture jargon.
+4. Follow the mode-specific path below.
+5. Keep the conversation in the user's language.
+6. Never invent missing decisions. Ask before writing. If the user explicitly wants to leave a point unresolved, mark it as `Open Decision` instead of guessing.
 
 ### `ard-init <project>`
 
 1. Check whether `<project>_ard.md` already exists.
 2. If it exists, ask whether to overwrite it or switch to `ard-update`.
-3. Elicit sections 1–18 in order, one section at a time.
-4. Ask 2–3 focused questions for the current section before documenting it.
-5. Record the decision, the why, and the discarded alternatives for each section.
-6. Generate section 19 (Recommended Sprint Map) only after sections 1–18 are complete.
-7. Write both the ARD and the index file.
-8. Confirm the output paths.
+3. Begin in discovery mode: ask short, conversational questions about the project goal, users, constraints, uncertainty, and what could get messy.
+4. Ask one or two questions at a time. Avoid exam-style interrogation and avoid requiring the user to name patterns up front.
+5. If the user arrives with a named architecture or pattern already in mind, do not accept or reject it immediately. First uncover the motivation, the current signals, and the real problem it is supposed to solve.
+6. For each section, infer the architectural tension from the user's answers, explain what you heard, and recommend a reasonable starting option when the user is unsure.
+7. When one option is clearly better justified, say so directly: use language like `My initial recommendation is...` instead of presenting false symmetry.
+8. Ask for confirmation or adjustment after making a recommendation.
+9. Record the decision, the why, and discarded alternatives when they are clear. If they are not clear yet, record an `Open Decision` with the current recommendation and what still needs validation.
+10. Generate section 19 (Recommended Sprint Map) only after sections 1–18 are complete.
+11. Write both the ARD and the index file.
+12. Confirm the output paths.
 
 ### `ard-update <project>`
 
 1. Read the existing `<project>_ard.md`. If it is missing, stop and direct the user to `ard-init`.
 2. Ask which section or decision should change.
 3. Show the current content of that section and ask why the change is needed.
-4. Call out ripple effects on other sections when they exist.
-5. Append the change to Decision Log (section 20) with date, section, change, reason, and who.
-6. Update the ARD and refresh the index if the structure changed.
-7. Confirm what changed.
+4. If the user is unsure about the replacement, switch briefly into discovery mode, ask conversational follow-up questions, and recommend an updated option before editing the ARD.
+5. If the user cannot share domain details, move to classification questions about risk, data sensitivity, execution autonomy, latency, reversibility of errors, and operational impact.
+6. Call out ripple effects on other sections when they exist.
+7. Append the change to Decision Log (section 20) with date, section, change, reason, and who.
+8. Update the ARD and refresh the index if the structure changed.
+9. Confirm what changed.
+
+## Elicitation Style
+
+- Be conversational, not interrogative.
+- Ask about project signals first: repetition, variability, coordination, integrations, failure points, growth, team limits, and delivery pressure.
+- Do not ask the user to choose named patterns, styles, or discarded alternatives until there is enough context to make those options meaningful.
+- Reflect back what you understood before recommending a decision.
+- Recommend before demanding certainty when the user is still exploring.
+- Prefer one or two focused questions per turn over a long checklist.
+- When the best answer is "not yet," capture an `Open Decision` instead of forcing a fake choice.
+- If the user starts with ambition language (for example "millonaria", "escalable", "enterprise", "quiero microservicios"), translate that into architecture-relevant questions instead of treating it as a decision.
+- If the user cannot reveal domain details, do not push for secrets. Ask for categories and operational consequences instead.
+- When asking about sensitive areas, briefly explain why the question matters when that reduces friction.
+- Use neutral, steady language. Avoid reactive phrasing like `Bueno, trabajo con lo que me diste` or loaded judgments that make the user defend themselves.
+- If two options are not equally justified, do not present them as a tie. State the recommended starting point and explain why the stronger alternative can wait or remain an `Open Decision`.
 
 ## Hard Rules
 
@@ -111,7 +133,7 @@ Do not use this format for normal clarification.
 
 - `assets/ard-template.md` — canonical 20-section ARD template
 - `assets/ard-index-template.md` — canonical ARD index template
-- `references/elicitation-question-bank.md` — section-by-section elicitation prompts
+- `references/elicitation-question-bank.md` — section-by-section elicitation prompts and recommendation cues
 - `references/known-pattern-conflicts.md` — expanded conflict catalog and resolution guidance
 
 ## Output Contract
